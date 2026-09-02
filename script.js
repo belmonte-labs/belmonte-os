@@ -1,254 +1,241 @@
-```javascript
 //==================================================
 // BELMONTE OS v1
-// script.js
-//==================================================
-
-
-//==================================================
-// ELEMENTOS
+// Script.js
 //==================================================
 
 const screen = document.getElementById("screen");
 
-
-//==================================================
-// APPS
-//==================================================
-
 const Apps =
 [
     {
-        icon: "📺",
-        name: "YouTube",
-        command: "OPEN_YOUTUBE"
+        icon:"📺",
+        name:"YouTube",
+        command:"OPEN_YOUTUBE"
     },
 
     {
-        icon: "🎬",
-        name: "Netflix",
-        command: "OPEN_NETFLIX"
+        icon:"🎬",
+        name:"Netflix",
+        command:"OPEN_NETFLIX"
     },
 
     {
-        icon: "🌐",
-        name: "Browser",
-        command: "OPEN_BROWSER"
+        icon:"🌐",
+        name:"Browser",
+        command:"OPEN_BROWSER"
     },
 
     {
-        icon: "🎵",
-        name: "Music",
-        command: "OPEN_MUSIC"
+        icon:"🎵",
+        name:"Music",
+        command:"OPEN_MUSIC"
     },
 
     {
-        icon: "⭐",
-        name: "Favorites",
-        command: "OPEN_FAVORITES"
+        icon:"⭐",
+        name:"Favorites",
+        command:"OPEN_FAVORITES"
     },
 
     {
-        icon: "⚙",
-        name: "Settings",
-        command: "OPEN_SETTINGS"
+        icon:"⚙",
+        name:"Settings",
+        command:"OPEN_SETTINGS"
     }
 ];
 
+Boot();
 
 //==================================================
-// FAVORITES
-//==================================================
-
 const Favorites =
 [
     {
-        icon: "📺",
-        name: "YouTube",
-        url: "https://www.youtube.com"
+        icon:"📺",
+        name:"YouTube",
+        url:"https://www.youtube.com"
     },
 
     {
-        icon: "🎬",
-        name: "Netflix",
-        url: "https://www.netflix.com"
+        icon:"🎬",
+        name:"Netflix",
+        url:"https://www.netflix.com"
     },
 
     {
-        icon: "🌐",
-        name: "Google",
-        url: "https://www.google.com"
+        icon:"🌐",
+        name:"Google",
+        url:"https://www.google.com"
     },
 
     {
-        icon: "🤖",
-        name: "ChatGPT",
-        url: "https://chatgpt.com"
+        icon:"🤖",
+        name:"ChatGPT",
+        url:"https://chatgpt.com"
     },
 
     {
-        icon: "🌎",
-        name: "Second Life",
-        url: "https://secondlife.com"
+        icon:"🌎",
+        name:"Second Life",
+        url:"https://secondlife.com"
     },
 
     {
-        icon: "💻",
-        name: "GitHub",
-        url: "https://github.com"
+        icon:"💻",
+        name:"GitHub",
+        url:"https://github.com"
     }
 ];
-
-
-//==================================================
-// SETTINGS
-//==================================================
 
 const Settings =
 [
     {
-        icon: "🔄",
-        name: "Reboot",
-        action: "REBOOT"
+        icon:"🔄",
+        name:"Reboot",
+        action:"REBOOT"
     },
 
     {
-        icon: "🏠",
-        name: "Home",
-        action: "HOME"
+        icon:"🏠",
+        name:"Home",
+        action:"HOME"
     },
 
     {
-        icon: "💻",
-        name: "GitHub",
-        action: "GITHUB"
+        icon:"💻",
+        name:"GitHub",
+        action:"GITHUB"
     },
 
     {
-        icon: "ℹ",
-        name: "About",
-        action: "ABOUT"
+        icon:"ℹ",
+        name:"About",
+        action:"ABOUT"
     }
 ];
-
-
-//==================================================
-// BOOT
-//==================================================
 
 function Boot()
 {
     screen.innerHTML = `
 
-        <div class="boot">
+    <div class="boot">
 
-            <h1>BELMONTE</h1>
+        <h1>BELMONTE</h1>
 
-            <h2>OS</h2>
+        <h2>OS</h2>
 
-            <p>Initializing...</p>
+        <p>Initializing...</p>
 
-            <div class="loading"></div>
+        <div class="loading"></div>
 
-        </div>
+    </div>
 
     `;
 
-    setTimeout(Home, 2500);
+    setTimeout(Home,2500);
 }
 
-
-//==================================================
-// HOME
 //==================================================
 
 function Home()
 {
+
     let html = "";
 
     for(const app of Apps)
     {
+
         html += `
 
-            <div
-                class="app"
-                onclick="OpenApp('${app.command}')">
+        <div
+            class="app"
+            onclick="OpenApp('${app.command}')">
 
-                <div class="icon">
-                    ${app.icon}
-                </div>
+            <div class="icon">
 
-                <div class="label">
-                    ${app.name}
-                </div>
+                ${app.icon}
 
             </div>
 
+            <div class="label">
+
+                ${app.name}
+
+            </div>
+
+        </div>
+
         `;
+
     }
 
     screen.innerHTML = `
 
-        <div class="topbar">
+    <div class="topbar">
 
-            <div class="logo">
-                🏠 BELMONTE OS
-            </div>
+        <div class="logo">
 
-            <div class="status">
-
-                <span>
-                    📶 Connected
-                </span>
-
-                <span id="clock">
-                    00:00
-                </span>
-
-            </div>
+            🏠 BELMONTE OS
 
         </div>
 
+        <div class="status">
 
-        <div class="content">
+            <span>
 
-            <div class="app-grid">
+                📶 Connected
 
-                ${html}
+            </span>
 
-            </div>
+            <span id="clock">
+
+                00:00
+
+            </span>
 
         </div>
+
+    </div>
+
+    <div class="content">
+
+        <div class="app-grid">
+
+            ${html}
+
+        </div>
+
+    </div>
 
     `;
 
     UpdateClock();
+
 }
 
-
-//==================================================
-// CLOCK
 //==================================================
 
 function UpdateClock()
 {
-    const clock = document.getElementById("clock");
+
+    const clock =
+        document.getElementById("clock");
 
     if(!clock)
         return;
 
     function Tick()
     {
+
         const now = new Date();
 
         clock.textContent =
             now.toLocaleTimeString(
                 [],
                 {
-                    hour: "2-digit",
-                    minute: "2-digit"
-                }
-            );
+                    hour:"2-digit",
+                    minute:"2-digit"
+                });
+
     }
 
     Tick();
@@ -257,12 +244,11 @@ function UpdateClock()
         clearInterval(window.ClockTimer);
 
     window.ClockTimer =
-        setInterval(Tick, 1000);
+        setInterval(Tick,1000);
+
 }
-
-
 //==================================================
-// OPEN APP
+// Open App
 //==================================================
 
 function OpenApp(command)
@@ -273,60 +259,65 @@ function OpenApp(command)
     {
         case "OPEN_YOUTUBE":
 
-            OpenURL("https://www.youtube.com");
-            break;
+            OpenURL(
+                "https://www.youtube.com"
+            );
 
+            break;
 
         case "OPEN_NETFLIX":
 
-            OpenURL("https://www.netflix.com");
-            break;
+            OpenURL(
+                "https://www.netflix.com"
+            );
 
+            break;
 
         case "OPEN_BROWSER":
 
-            OpenURL("https://www.google.com");
-            break;
+            OpenURL(
+                "https://www.google.com"
+            );
 
+            break;
 
         case "OPEN_MUSIC":
 
-            OpenURL("https://music.youtube.com");
-            break;
+            OpenURL(
+                "https://music.youtube.com"
+            );
 
+            break;
 
         case "OPEN_FAVORITES":
 
-            ShowFavorites();
-            break;
+    ShowFavorites();
 
+    break;
 
-        case "OPEN_SETTINGS":
+case "OPEN_SETTINGS":
 
-            ShowSettings();
-            break;
+    ShowSettings();
+
+    break;
     }
+
 }
 
-
 //==================================================
-// OPEN URL
+// Open URL
 //==================================================
 
 function OpenURL(url)
 {
     screen.style.background = "#000";
 
-    setTimeout(
-        function()
-        {
-            window.location.href = url;
-        },
-        300
-    );
+    setTimeout(function()
+    {
+        window.location.href = url;
+
+    },300);
 }
-
-
 //==================================================
 // FAVORITES
 //==================================================
@@ -339,59 +330,64 @@ function ShowFavorites()
     {
         html += `
 
-            <div
-                class="app"
-                onclick="OpenURL('${favorite.url}')">
+        <div
+            class="app"
+            onclick="OpenURL('${favorite.url}')">
 
-                <div class="icon">
-                    ${favorite.icon}
-                </div>
+            <div class="icon">
 
-                <div class="label">
-                    ${favorite.name}
-                </div>
+                ${favorite.icon}
 
             </div>
+
+            <div class="label">
+
+                ${favorite.name}
+
+            </div>
+
+        </div>
 
         `;
     }
 
     screen.innerHTML = `
 
-        <div class="topbar">
+    <div class="topbar">
 
-            <div class="logo">
-                ⭐ FAVORITES
-            </div>
+        <div class="logo">
 
-            <div class="status">
-
-                <span
-                    class="app"
-                    onclick="Home()">
-
-                    🏠 Home
-
-                </span>
-
-            </div>
+            ⭐ FAVORITES
 
         </div>
 
+        <div class="status">
 
-        <div class="content">
+            <span class="app" onclick="Home()">
 
-            <div class="app-grid">
+                🏠 Home
 
-                ${html}
-
-            </div>
+            </span>
 
         </div>
+
+    </div>
+
+    <div class="content">
+
+        <div class="app-grid">
+
+            ${html}
+
+        </div>
+
+    </div>
 
     `;
 }
-
+//==================================================
+// SETTINGS
+//==================================================
 
 //==================================================
 // SETTINGS
@@ -405,59 +401,77 @@ function ShowSettings()
     {
         html += `
 
-            <div
-                class="app"
-                onclick="RunSetting('${item.action}')">
+        <div
+            class="app"
+            onclick="RunSetting('${item.action}')">
 
-                <div class="icon">
-                    ${item.icon}
-                </div>
+            <div class="icon">
 
-                <div class="label">
-                    ${item.name}
-                </div>
+                ${item.icon}
 
             </div>
+
+            <div class="label">
+
+                ${item.name}
+
+            </div>
+
+        </div>
 
         `;
     }
 
     screen.innerHTML = `
 
-        <div class="topbar">
+    <div class="topbar">
 
-            <div class="logo">
-                ⚙ SETTINGS
-            </div>
+        <div class="logo">
 
-            <div class="status">
-
-                <span
-                    class="app"
-                    onclick="Home()">
-
-                    🏠 Home
-
-                </span>
-
-            </div>
+            ⚙ SETTINGS
 
         </div>
 
+        <div class="status">
 
-        <div class="content">
+            <span class="app" onclick="Home()">
 
-            <div class="app-grid">
+                🏠 Home
 
-                ${html}
-
-            </div>
+            </span>
 
         </div>
+
+    </div>
+
+    <div class="content">
+
+        <div class="app-grid">
+
+            ${html}
+
+        </div>
+
+    </div>
 
     `;
 }
+//==================================================
+// Receiver (Preparado para o SL)
+//==================================================
 
+window.addEventListener(
+    "message",
+    function(event)
+    {
+
+        console.log(
+            "Receiver:",
+            event.data
+        );
+
+    }
+);
 
 //==================================================
 // SETTINGS ACTIONS
@@ -470,81 +484,71 @@ function RunSetting(action)
         case "REBOOT":
 
             location.reload();
-            break;
 
+            break;
 
         case "HOME":
 
             Home();
-            break;
 
+            break;
 
         case "GITHUB":
 
-            OpenURL("https://github.com");
-            break;
+            OpenURL(
+                "https://github.com"
+            );
 
+            break;
 
         case "ABOUT":
 
             screen.innerHTML = `
 
-                <div class="topbar">
+            <div class="topbar">
 
-                    <div class="logo">
-                        ℹ ABOUT
-                    </div>
+                <div class="logo">
 
-                    <div class="status">
-
-                        <span
-                            class="app"
-                            onclick="ShowSettings()">
-
-                            ⬅ Back
-
-                        </span>
-
-                    </div>
+                    ℹ ABOUT
 
                 </div>
 
+                <div class="status">
 
-                <div class="content">
+                    <span class="app" onclick="ShowSettings()">
 
-                    <div style="text-align:center;">
+                        ⬅ Back
 
-                        <h2>Belmonte OS</h2>
-
-                        <br>
-
-                        <p>Version 1.0</p>
-
-                        <br>
-
-                        <p>Designed for Second Life</p>
-
-                        <br>
-
-                        <p>
-                            Powered by HTML, CSS,
-                            JavaScript & Second Life
-                        </p>
-
-                    </div>
+                    </span>
 
                 </div>
+
+            </div>
+
+            <div class="content">
+
+                <div style="text-align:center;">
+
+                    <h2>Belmonte OS</h2>
+
+                    <br>
+
+                    <p>Version 1.0</p>
+
+                    <br>
+
+                    <p>Designed by Victoria Belmonte</p>
+
+                    <br>
+
+                    <p>Powered by HTML, CSS, JavaScript & Second Life</p>
+
+                </div>
+
+            </div>
 
             `;
 
             break;
     }
 }
-
-
-//==================================================
-// START SYSTEM
-//==================================================
-
-Boot();
-```
