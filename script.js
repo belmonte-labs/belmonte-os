@@ -19,6 +19,8 @@ const APPS = [
 ];
 
 let page = "apps";
+let picking = false;
+let removing = false;
 
 Render();
 
@@ -46,24 +48,29 @@ function isFav(url)
   return loadFavs().some(item => item.url === url);
 }
 
-function toggleFav(url)
+function addFav(url)
 {
   const app = APPS.find(item => item.url === url);
-  if (!app) return;
-
-  let list = loadFavs();
-  if (list.some(item => item.url === url))
-    list = list.filter(item => item.url !== url);
-  else
-    list.push(app);
-
+  if (!app || isFav(url)) return;
+  const list = loadFavs();
+  list.push(app);
   saveFavs(list);
+  picking = false;
+  page = "fav";
+  Render();
+}
+
+function removeFav(url)
+{
+  saveFavs(loadFavs().filter(item => item.url !== url));
   Render();
 }
 
 function clearFavs()
 {
   saveFavs([]);
+  picking = false;
+  removing = false;
   page = "fav";
   Render();
 }
@@ -110,6 +117,8 @@ function Render()
 
 function Go(id)
 {
+  picking = false;
+  removing = false;
   if (id === "live") return OpenURL("https://pluto.tv");
   if (id === "web")  return OpenURL("https://www.google.com");
   page = id;
@@ -126,25 +135,43 @@ function DrawPage()
     main.innerHTML = `
       <div class="kicker">Library</div>
       <h1>Apps</h1>
-      <div class="sub">Select an application. Use the star to add it to Favorites.</div>
-      <div class="grid">${APPS.map(AppTile).join("")}</div>
+      <div class="sub">Select an application</div>
+      <div class="grid">${APPS.map(app => AppTile(app, "open")).join("")}</div>
     `;
     return;
   }
 
   if (page === "fav")
   {
+    if (picking)
+    {
+      main.innerHTML = `
+        <div class="kicker">Library</div>
+        <h1>Add favorite</h1>
+        <div class="sub">Choose an app to pin</div>
+        <div class="actions">
+          <button class="btn" onclick="picking=false; Render()">Cancel</button>
+        </div>
+        <div class="grid picker">
+          ${APPS.map(app => AppTile(app, isFav(app.url) ? "disabled" : "add")).join("")}
+        </div>
+      `;
+      return;
+    }
+
     main.innerHTML = `
       <div class="kicker">Library</div>
       <h1>Favorites</h1>
-      <div class="sub">Your pinned apps</div>
+      <div class="sub">${removing ? "Tap an app to remove it" : "Your pinned apps"}</div>
+      <div class="actions">
+        <button class="btn" onclick="picking=true; removing=false; Render()">Add favorite</button>
+        ${favs.length ? `<button class="btn" onclick="removing=${!removing}; Render()">${removing ? "Done" : "Remove"}</button>` : ""}
+        ${favs.length ? `<button class="btn" onclick="clearFavs()">Clear all</button>` : ""}
+      </div>
       ${
         favs.length
-          ? `<div class="grid">${favs.map(AppTile).join("")}</div>
-             <div class="settings-list">
-               <div class="row" onclick="clearFavs()">Clear favorites</div>
-             </div>`
-          : `<div class="empty">No favorites yet.<br>Open Apps and tap the star on a tile.</div>`
+          ? `<div class="grid">${favs.map(app => AppTile(app, removing ? "remove" : "open")).join("")}</div>`
+          : `<div class="empty">No favorites yet.<br>Use Add favorite to pin an app.</div>`
       }
     `;
     return;
@@ -160,18 +187,31 @@ function DrawPage()
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 2.3</div>
+        <div class="row static">Version 2.4</div>
       </div>
     `;
   }
 }
 
-function AppTile(app)
+function AppTile(app, mode)
 {
-  const on = isFav(app.url) ? "on" : "";
+  if (mode === "disabled")
+  {
+    return `
+      <div class="tile disabled">
+        ${iconTag(app.icon, app.name)}
+        <label>${app.name}</label>
+      </div>
+    `;
+  }
+
+  const click =
+    mode === "add"    ? `addFav('${app.url}')` :
+    mode === "remove" ? `removeFav('${app.url}')` :
+                        `OpenURL('${app.url}')`;
+
   return `
-    <div class="tile" onclick="OpenURL('${app.url}')">
-      <button class="star ${on}" onclick="event.stopPropagation(); toggleFav('${app.url}')">★</button>
+    <div class="tile" onclick="${click}">
       ${iconTag(app.icon, app.name)}
       <label>${app.name}</label>
     </div>
