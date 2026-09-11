@@ -1,6 +1,7 @@
 const screen = document.getElementById("screen");
 const FAV_KEY = "belmonte_favs";
 const APP_KEY = "belmonte_custom_apps";
+const START_KEY = "belmonte_start";
 
 const MENU = [
   { id: "home", label: "Home",      icon: "icons/home.png" },
@@ -26,12 +27,25 @@ const LIVE = [
   { name: "Twitch",   url: "https://www.twitch.tv", icon: "icons/twitch.png" }
 ];
 
-let page = "home";
+let page = getStart();
 let picking = false;
 let removing = false;
 let addingApp = false;
 
 Render();
+
+function getStart()
+{
+  const value = localStorage.getItem(START_KEY);
+  return (value === "live" || value === "apps" || value === "home") ? value : "home";
+}
+
+function setStart(id)
+{
+  localStorage.setItem(START_KEY, id);
+  page = "set";
+  Render();
+}
 
 function readList(key)
 {
@@ -80,19 +94,13 @@ function clearFavs()
 
 function addCustomApp()
 {
-  const name = (document.getElementById("app-name") || {}).value || "";
-  const url  = (document.getElementById("app-url")  || {}).value || "";
-  const cleanName = name.trim();
-  const cleanUrl  = url.trim();
-
-  if (!cleanName || !/^https?:\/\//i.test(cleanUrl)) return;
-  if (allApps().some(item => item.url === cleanUrl)) return;
+  const name = ((document.getElementById("app-name") || {}).value || "").trim();
+  const url  = ((document.getElementById("app-url")  || {}).value || "").trim();
+  if (!name || !/^https?:\/\//i.test(url)) return;
+  if (allApps().some(item => item.url === url)) return;
 
   saveCustom(loadCustom().concat([{
-    name: cleanName,
-    url: cleanUrl,
-    icon: "icons/browser.png",
-    custom: true
+    name, url, icon: "icons/browser.png", custom: true
   }]));
 
   addingApp = false;
@@ -162,11 +170,11 @@ function DrawPage()
   const favs = loadFavs();
   const custom = loadCustom();
   const apps = allApps();
+  const start = getStart();
 
   if (page === "home")
   {
     const row = favs.length ? favs.slice(0, 4) : apps.slice(0, 4);
-    const title = favs.length ? "Favorites" : "Suggested";
     main.innerHTML = `
       <h1>Home</h1>
       <div class="featured" onclick="OpenURL('https://pluto.tv')">
@@ -174,7 +182,7 @@ function DrawPage()
         <h2>Pluto TV</h2>
         <div class="watch">Watch live</div>
       </div>
-      <div class="section-title">${title}</div>
+      <div class="section-title">${favs.length ? "Favorites" : "Suggested"}</div>
       <div class="grid">${row.map(app => AppTile(app, "open")).join("")}</div>
     `;
     return;
@@ -255,12 +263,19 @@ function DrawPage()
 
     main.innerHTML = `
       <h1>Settings</h1>
+      <div class="section-title">Start page</div>
+      <div class="settings-list">
+        <div class="row" onclick="setStart('home')">Home${start === "home" ? "  ·  selected" : ""}</div>
+        <div class="row" onclick="setStart('live')">Live TV${start === "live" ? "  ·  selected" : ""}</div>
+        <div class="row" onclick="setStart('apps')">Apps${start === "apps" ? "  ·  selected" : ""}</div>
+      </div>
+      <div class="section-title">System</div>
       <div class="settings-list">
         <div class="row" onclick="addingApp=true; Render()">Add app</div>
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 2.7</div>
+        <div class="row static">Version 2.8</div>
       </div>
       ${
         custom.length
