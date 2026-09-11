@@ -2,6 +2,7 @@ const screen = document.getElementById("screen");
 const FAV_KEY = "belmonte_favs";
 
 const MENU = [
+  { id: "home", label: "Home",      icon: "icons/home.png" },
   { id: "live", label: "Live TV",   icon: "icons/live.png" },
   { id: "apps", label: "Apps",      icon: "icons/apps.png" },
   { id: "web",  label: "Browser",   icon: "icons/browser.png" },
@@ -19,12 +20,12 @@ const APPS = [
 ];
 
 const LIVE = [
-  { name: "Pluto TV", url: "https://pluto.tv",        icon: "icons/pluto.png" },
-  { name: "Tubi",     url: "https://tubitv.com",      icon: "icons/tubi.png" },
-  { name: "Twitch",   url: "https://www.twitch.tv",   icon: "icons/twitch.png" }
+  { name: "Pluto TV", url: "https://pluto.tv",      icon: "icons/pluto.png" },
+  { name: "Tubi",     url: "https://tubitv.com",    icon: "icons/tubi.png" },
+  { name: "Twitch",   url: "https://www.twitch.tv", icon: "icons/twitch.png" }
 ];
 
-let page = "live";
+let page = "home";
 let picking = false;
 let removing = false;
 
@@ -58,9 +59,7 @@ function addFav(url)
 {
   const app = APPS.find(item => item.url === url);
   if (!app || isFav(url)) return;
-  const list = loadFavs();
-  list.push(app);
-  saveFavs(list);
+  saveFavs(loadFavs().concat([app]));
   picking = false;
   page = "fav";
   Render();
@@ -116,7 +115,6 @@ function Render()
       <section class="main" id="main"></section>
     </div>
   `;
-
   DrawPage();
   UpdateClock();
 }
@@ -135,6 +133,26 @@ function DrawPage()
   const main = document.getElementById("main");
   const favs = loadFavs();
 
+  if (page === "home")
+  {
+    const row = favs.length ? favs.slice(0, 4) : APPS.slice(0, 4);
+    const title = favs.length ? "Favorites" : "Suggested";
+    main.innerHTML = `
+      <div class="kicker">Belmonte TV</div>
+      <h1>Home</h1>
+      <div class="sub">Live television and your pinned apps</div>
+      <div class="featured" onclick="OpenURL('https://pluto.tv')">
+        <div class="tag">Live TV</div>
+        <h2>Pluto TV</h2>
+        <p>Free live channels. Press Watch live to start.</p>
+        <div class="watch">Watch live</div>
+      </div>
+      <div class="section-title">${title}</div>
+      <div class="grid">${row.map(app => AppTile(app, "open")).join("")}</div>
+    `;
+    return;
+  }
+
   if (page === "live")
   {
     main.innerHTML = `
@@ -144,12 +162,10 @@ function DrawPage()
       <div class="featured" onclick="OpenURL('https://pluto.tv')">
         <div class="tag">Now available</div>
         <h2>Pluto TV</h2>
-        <p>Watch live news, movies and series without leaving Belmonte TV until you press Watch.</p>
+        <p>Watch live news, movies and series.</p>
         <div class="watch">Watch live</div>
       </div>
-      <div class="grid">
-        ${LIVE.map(app => AppTile(app, "open")).join("")}
-      </div>
+      <div class="grid">${LIVE.map(app => AppTile(app, "open")).join("")}</div>
     `;
     return;
   }
@@ -211,7 +227,7 @@ function DrawPage()
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 2.5</div>
+        <div class="row static">Version 2.6</div>
       </div>
     `;
   }
@@ -228,12 +244,10 @@ function AppTile(app, mode)
       </div>
     `;
   }
-
   const click =
     mode === "add"    ? `addFav('${app.url}')` :
     mode === "remove" ? `removeFav('${app.url}')` :
                         `OpenURL('${app.url}')`;
-
   return `
     <div class="tile" onclick="${click}">
       ${iconTag(app.icon, app.name)}
@@ -252,20 +266,11 @@ function UpdateClock()
   const clock = document.getElementById("clock");
   const date = document.getElementById("date");
   if (!clock || !date) return;
-
   const tick = () => {
     const now = new Date();
-    clock.textContent = now.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-    date.textContent = now.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric"
-    });
+    clock.textContent = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+    date.textContent = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
   };
-
   tick();
   if (window.ClockTimer) clearInterval(window.ClockTimer);
   window.ClockTimer = setInterval(tick, 1000);
