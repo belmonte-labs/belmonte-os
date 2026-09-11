@@ -3,19 +3,21 @@ const screen = document.getElementById("screen");
 const MENU = [
   { id: "live",  label: "Live TV",    icon: "icons/live.png" },
   { id: "apps",  label: "Apps",       icon: "icons/apps.png" },
+  { id: "web",   label: "Browser",    icon: "icons/browser.png" },
   { id: "fav",   label: "Favorites",  icon: "icons/star.png" },
   { id: "set",   label: "Settings",   icon: "icons/settings.png" }
 ];
 
 const APPS = [
-  { name: "YouTube",  url: "https://www.youtube.com",     icon: "icons/youtube.png" },
-  { name: "Pluto TV", url: "https://pluto.tv",            icon: "icons/pluto.png" },
-  { name: "Twitch",   url: "https://www.twitch.tv",       icon: "icons/twitch.png" },
-  { name: "Browser",  url: "https://www.google.com",      icon: "icons/browser.png" },
-  { name: "Music",    url: "https://music.youtube.com",   icon: "icons/music.png" },
-  { name: "Kosmi",    url: "https://kosmi.io",            icon: "icons/kosmi.png" },
-  { name: "Tubi",     url: "https://tubitv.com",          icon: "icons/tubi.png" }
+  { name: "YouTube",  url: "https://www.youtube.com",   icon: "icons/youtube.png" },
+  { name: "Pluto TV", url: "https://pluto.tv",          icon: "icons/pluto.png" },
+  { name: "Twitch",   url: "https://www.twitch.tv",     icon: "icons/twitch.png" },
+  { name: "Music",    url: "https://music.youtube.com", icon: "icons/music.png" },
+  { name: "Kosmi",    url: "https://kosmi.io",          icon: "icons/kosmi.png" },
+  { name: "Tubi",     url: "https://tubitv.com",        icon: "icons/tubi.png" }
 ];
+
+const FAVORITES = APPS.slice(0, 4);
 
 let page = "apps";
 
@@ -35,7 +37,10 @@ function Render()
 {
   screen.innerHTML = `
     <aside class="sidebar">
-      <div class="brand">BELMONTE</div>
+      <div class="brand">
+        <strong>BELMONTE</strong>
+        <small>Television</small>
+      </div>
       <nav class="nav">
         ${MENU.map(item => `
           <div class="nav-item ${page === item.id ? "active" : ""}"
@@ -61,6 +66,11 @@ function Go(id)
     OpenURL("https://pluto.tv");
     return;
   }
+  if (id === "web")
+  {
+    OpenURL("https://www.google.com");
+    return;
+  }
   page = id;
   Render();
 }
@@ -72,24 +82,21 @@ function DrawPage()
   if (page === "apps")
   {
     main.innerHTML = `
+      <div class="kicker">Library</div>
       <h1>Apps</h1>
-      <div class="sub">Escolha um aplicativo</div>
-      <div class="grid">
-        ${APPS.map(app => AppTile(app)).join("")}
-      </div>
+      <div class="sub">Select an application</div>
+      <div class="grid">${APPS.map(AppTile).join("")}</div>
     `;
     return;
   }
 
   if (page === "fav")
   {
-    const favs = APPS.slice(0, 4);
     main.innerHTML = `
+      <div class="kicker">Library</div>
       <h1>Favorites</h1>
-      <div class="sub">Atalhos rápidos</div>
-      <div class="grid">
-        ${favs.map(app => AppTile(app)).join("")}
-      </div>
+      <div class="sub">Quick access</div>
+      <div class="grid">${FAVORITES.map(AppTile).join("")}</div>
     `;
     return;
   }
@@ -97,12 +104,13 @@ function DrawPage()
   if (page === "set")
   {
     main.innerHTML = `
+      <div class="kicker">System</div>
       <h1>Settings</h1>
-      <div class="sub">Belmonte OS · Belmonte Labs</div>
+      <div class="sub">Belmonte TV</div>
       <div class="settings-list">
         <div class="row" onclick="location.reload()">Reload interface</div>
-        <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">GitHub</div>
-        <div class="row">Version 2.1</div>
+        <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
+        <div class="row static">Version 2.2</div>
       </div>
     `;
   }
@@ -128,7 +136,7 @@ function UpdateClock()
   const el = document.getElementById("clock");
   if (!el) return;
   const tick = () => {
-    el.textContent = new Date().toLocaleTimeString([], {
+    el.textContent = new Date().toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit"
     });
