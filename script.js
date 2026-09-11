@@ -18,7 +18,13 @@ const APPS = [
   { name: "Tubi",     url: "https://tubitv.com",        icon: "icons/tubi.png" }
 ];
 
-let page = "apps";
+const LIVE = [
+  { name: "Pluto TV", url: "https://pluto.tv",        icon: "icons/pluto.png" },
+  { name: "Tubi",     url: "https://tubitv.com",      icon: "icons/tubi.png" },
+  { name: "Twitch",   url: "https://www.twitch.tv",   icon: "icons/twitch.png" }
+];
+
+let page = "live";
 let picking = false;
 let removing = false;
 
@@ -119,8 +125,7 @@ function Go(id)
 {
   picking = false;
   removing = false;
-  if (id === "live") return OpenURL("https://pluto.tv");
-  if (id === "web")  return OpenURL("https://www.google.com");
+  if (id === "web") return OpenURL("https://www.google.com");
   page = id;
   Render();
 }
@@ -129,6 +134,25 @@ function DrawPage()
 {
   const main = document.getElementById("main");
   const favs = loadFavs();
+
+  if (page === "live")
+  {
+    main.innerHTML = `
+      <div class="kicker">Broadcast</div>
+      <h1>Live TV</h1>
+      <div class="sub">Free live channels and streams</div>
+      <div class="featured" onclick="OpenURL('https://pluto.tv')">
+        <div class="tag">Now available</div>
+        <h2>Pluto TV</h2>
+        <p>Watch live news, movies and series without leaving Belmonte TV until you press Watch.</p>
+        <div class="watch">Watch live</div>
+      </div>
+      <div class="grid">
+        ${LIVE.map(app => AppTile(app, "open")).join("")}
+      </div>
+    `;
+    return;
+  }
 
   if (page === "apps")
   {
@@ -152,7 +176,7 @@ function DrawPage()
         <div class="actions">
           <button class="btn" onclick="picking=false; Render()">Cancel</button>
         </div>
-        <div class="grid picker">
+        <div class="grid">
           ${APPS.map(app => AppTile(app, isFav(app.url) ? "disabled" : "add")).join("")}
         </div>
       `;
@@ -187,7 +211,7 @@ function DrawPage()
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 2.4</div>
+        <div class="row static">Version 2.5</div>
       </div>
     `;
   }
