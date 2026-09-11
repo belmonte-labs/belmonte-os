@@ -31,6 +31,7 @@ let page = getStart();
 let picking = false;
 let removing = false;
 let addingApp = false;
+let iconFor = "";
 
 Render();
 
@@ -67,6 +68,15 @@ function saveCustom(list){ localStorage.setItem(APP_KEY, JSON.stringify(list)); 
 function allApps(){ return APPS.concat(loadCustom()); }
 function isFav(url){ return loadFavs().some(item => item.url === url); }
 
+function normalizeIcon(value)
+{
+  let icon = (value || "").trim();
+  if (!icon) return "icons/browser.png";
+  if (icon.indexOf("/") === -1) icon = "icons/" + icon;
+  if (!/\.(png|jpg|jpeg|webp|svg)$/i.test(icon)) icon += ".png";
+  return icon;
+}
+
 function addFav(url)
 {
   const app = allApps().find(item => item.url === url);
@@ -96,15 +106,33 @@ function addCustomApp()
 {
   const name = ((document.getElementById("app-name") || {}).value || "").trim();
   const url  = ((document.getElementById("app-url")  || {}).value || "").trim();
+  const icon = normalizeIcon((document.getElementById("app-icon") || {}).value || "");
   if (!name || !/^https?:\/\//i.test(url)) return;
   if (allApps().some(item => item.url === url)) return;
 
-  saveCustom(loadCustom().concat([{
-    name, url, icon: "icons/browser.png", custom: true
-  }]));
-
+  saveCustom(loadCustom().concat([{ name, url, icon, custom: true }]));
   addingApp = false;
   page = "apps";
+  Render();
+}
+
+function saveCustomIcon()
+{
+  const icon = normalizeIcon((document.getElementById("app-icon") || {}).value || "");
+  const list = loadCustom().map(app => {
+    if (app.url === iconFor) app.icon = icon;
+    return app;
+  });
+  saveCustom(list);
+
+  const favs = loadFavs().map(app => {
+    if (app.url === iconFor) app.icon = icon;
+    return app;
+  });
+  saveFavs(favs);
+
+  iconFor = "";
+  page = "set";
   Render();
 }
 
@@ -159,6 +187,7 @@ function Go(id)
   picking = false;
   removing = false;
   addingApp = false;
+  iconFor = "";
   if (id === "web") return OpenURL("https://www.google.com");
   page = id;
   Render();
@@ -245,16 +274,18 @@ function DrawPage()
 
   if (page === "set")
   {
-    if (addingApp)
+    if (addingApp || iconFor)
     {
+      const title = iconFor ? "Set icon" : "Add app";
       main.innerHTML = `
-        <h1>Add app</h1>
+        <h1>${title}</h1>
         <div class="form">
-          <input id="app-name" type="text" placeholder="App name">
-          <input id="app-url" type="text" placeholder="https://example.com">
+          ${iconFor ? "" : `<input id="app-name" type="text" placeholder="App name">`}
+          ${iconFor ? "" : `<input id="app-url" type="text" placeholder="https://example.com">`}
+          <input id="app-icon" type="text" placeholder="icon file  e.g. reddit.png">
           <div class="actions">
-            <button class="btn" onclick="addCustomApp()">Save app</button>
-            <button class="btn" onclick="addingApp=false; Render()">Cancel</button>
+            <button class="btn" onclick="${iconFor ? "saveCustomIcon()" : "addCustomApp()"}">Save</button>
+            <button class="btn" onclick="addingApp=false; iconFor=''; Render()">Cancel</button>
           </div>
         </div>
       `;
@@ -275,13 +306,14 @@ function DrawPage()
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 2.8</div>
+        <div class="row static">Version 2.9</div>
       </div>
       ${
         custom.length
           ? `<div class="section-title">Custom apps</div>
              <div class="settings-list">
                ${custom.map(app => `
+                 <div class="row" onclick="iconFor='${app.url}'; Render()">Set icon · ${app.name}</div>
                  <div class="row" onclick="removeCustomApp('${app.url}')">Remove ${app.name}</div>
                `).join("")}
              </div>`
