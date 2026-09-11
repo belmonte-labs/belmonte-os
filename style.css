@@ -1,441 +1,155 @@
-const screen = document.getElementById("screen");
-const FAV_KEY = "belmonte_favs";
-const APP_KEY = "belmonte_custom_apps";
-const START_KEY = "belmonte_start";
-const TZ_KEY = "belmonte_tz";
-const SCREEN_KEY = "belmonte_saver";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
-const SAVER_OPTS = [
-  { id: "off", label: "Off",         ms: 0 },
-  { id: "30",  label: "30 seconds",  ms: 30000 },
-  { id: "60",  label: "1 minute",    ms: 60000 },
-  { id: "90",  label: "90 seconds",  ms: 90000 },
-  { id: "120", label: "2 minutes",   ms: 120000 },
-  { id: "300", label: "5 minutes",   ms: 300000 },
-  { id: "600", label: "10 minutes",  ms: 600000 }
-];
-
-const ZONES = [
-  { id: "America/New_York",    city: "New York" },
-  { id: "America/Los_Angeles", city: "Los Angeles" },
-  { id: "America/Chicago",     city: "Chicago" },
-  { id: "America/Toronto",     city: "Toronto" },
-  { id: "America/Sao_Paulo",   city: "Sao Paulo" },
-  { id: "America/Mexico_City", city: "Mexico City" },
-  { id: "Europe/London",       city: "London" },
-  { id: "Europe/Paris",        city: "Paris" },
-  { id: "Europe/Berlin",       city: "Berlin" },
-  { id: "Asia/Dubai",          city: "Dubai" },
-  { id: "Asia/Kolkata",        city: "Mumbai" },
-  { id: "Asia/Tokyo",          city: "Tokyo" },
-  { id: "Asia/Seoul",          city: "Seoul" },
-  { id: "Australia/Sydney",    city: "Sydney" }
-];
-
-const MENU = [
-  { id: "home", label: "Home",      icon: "icons/home.png" },
-  { id: "live", label: "Live TV",   icon: "icons/live.png" },
-  { id: "apps", label: "Apps",      icon: "icons/apps.png" },
-  { id: "web",  label: "Browser",   icon: "icons/browser.png" },
-  { id: "fav",  label: "Favorites", icon: "icons/star.png" },
-  { id: "set",  label: "Settings",  icon: "icons/settings.png" }
-];
-
-const APPS = [
-  { name: "YouTube",  url: "https://www.youtube.com",   icon: "icons/youtube.png" },
-  { name: "Pluto TV", url: "https://pluto.tv",          icon: "icons/pluto.png" },
-  { name: "Twitch",   url: "https://www.twitch.tv",     icon: "icons/twitch.png" },
-  { name: "Music",    url: "https://music.youtube.com", icon: "icons/music.png" },
-  { name: "Kosmi",    url: "https://kosmi.io",          icon: "icons/kosmi.png" },
-  { name: "Tubi",     url: "https://tubitv.com",        icon: "icons/tubi.png" }
-];
-
-const LIVE = [
-  { name: "Pluto TV", url: "https://pluto.tv",      icon: "icons/pluto.png" },
-  { name: "Tubi",     url: "https://tubitv.com",    icon: "icons/tubi.png" },
-  { name: "Twitch",   url: "https://www.twitch.tv", icon: "icons/twitch.png" }
-];
-
-let page = getStart();
-let picking = false;
-let removing = false;
-let addingApp = false;
-let iconFor = "";
-let choosingTz = false;
-let saverOn = false;
-let idleTimer = null;
-
-Render();
-
-function getStart()
-{
-  const value = localStorage.getItem(START_KEY);
-  return (value === "live" || value === "apps" || value === "home") ? value : "home";
-}
-function setStart(id)
-{
-  localStorage.setItem(START_KEY, id);
-  page = "set";
-  Render();
-}
-function getTz()
-{
-  return localStorage.getItem(TZ_KEY) || "America/New_York";
-}
-function setTz(id)
-{
-  localStorage.setItem(TZ_KEY, id);
-  choosingTz = false;
-  page = "set";
-  Render();
-}
-function tzLabel()
-{
-  const found = ZONES.find(item => item.id === getTz());
-  return found ? found.city : "New York";
-}
-function getSaver()
-{
-  const id = localStorage.getItem(SCREEN_KEY) || "90";
-  return SAVER_OPTS.find(item => item.id === id) || SAVER_OPTS[3];
-}
-function setSaver(id)
-{
-  localStorage.setItem(SCREEN_KEY, id);
-  page = "set";
-  Render();
+:root{
+  --bg:#0a0b0e;
+  --card:rgba(255,255,255,.035);
+  --card-hover:rgba(255,255,255,.06);
+  --line:rgba(255,255,255,.08);
+  --text:#f5f6f8;
+  --muted:#8d93a0;
+  --soft:#c8ccd4;
 }
 
-function nowParts()
-{
-  const tz = getTz();
-  const now = new Date();
-  return {
-    time: now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: tz }),
-    date: now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: tz })
-  };
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{
+  width:100%;height:100%;overflow:hidden;
+  background:#000;color:var(--text);
+  font-family:Inter,Arial,sans-serif;
+}
+#screen{
+  position:relative;
+  width:100vw;height:100vh;
+  display:flex;
+  overflow:hidden;
+  background:
+    radial-gradient(70vw 50vh at 72% -10%, rgba(255,255,255,.05), transparent 46%),
+    linear-gradient(90deg,#08090c 0%, #0c0e13 100%);
 }
 
-function readList(key)
-{
-  try
-  {
-    const list = JSON.parse(localStorage.getItem(key) || "[]");
-    return Array.isArray(list) ? list : [];
-  }
-  catch (e)
-  {
-    return [];
-  }
+.sidebar{
+  width:17.5vw;min-width:190px;max-width:260px;height:100%;
+  padding:4.2vh 1.2vw 3.2vh;
+  background:linear-gradient(180deg,#10131a 0%, #0b0d12 100%);
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;
 }
-function loadFavs(){ return readList(FAV_KEY); }
-function saveFavs(list){ localStorage.setItem(FAV_KEY, JSON.stringify(list)); }
-function loadCustom(){ return readList(APP_KEY); }
-function saveCustom(list){ localStorage.setItem(APP_KEY, JSON.stringify(list)); }
-function allApps(){ return APPS.concat(loadCustom()); }
-function isFav(url){ return loadFavs().some(item => item.url === url); }
+.brand{
+  padding:0 .55vw 4vh;
+  font-size:2.7vh;line-height:1.1;
+  letter-spacing:.02em;color:#dfe3ea;font-weight:500;
+}
+.brand b{font-weight:700;color:#fff}
 
-function normalizeIcon(value)
-{
-  let icon = (value || "").trim();
-  if (!icon) return "icons/browser.png";
-  if (icon.indexOf("/") === -1) icon = "icons/" + icon;
-  if (!/\.(png|jpg|jpeg|webp|svg)$/i.test(icon)) icon += ".png";
-  return icon;
+.nav{display:flex;flex-direction:column;gap:6px}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:1.15vh .75vw;border-radius:10px;
+  color:var(--muted);cursor:pointer;
 }
+.nav-item img,.nav-item .dot{
+  width:20px;height:20px;object-fit:contain;flex:0 0 20px;
+}
+.nav-item .dot{border-radius:5px;background:#232833}
+.nav-item span{font-size:1.7vh;font-weight:600}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.04)}
+.nav-item.active{color:#fff;background:rgba(255,255,255,.07)}
 
-function addFav(url)
-{
-  const app = allApps().find(item => item.url === url);
-  if (!app || isFav(url)) return;
-  saveFavs(loadFavs().concat([app]));
-  picking = false;
-  page = "fav";
-  Render();
+.stage{
+  flex:1;min-width:0;min-height:0;height:100%;
+  display:flex;flex-direction:column;overflow:hidden;
 }
-function removeFav(url)
-{
-  saveFavs(loadFavs().filter(item => item.url !== url));
-  Render();
+.topbar{display:flex;justify-content:flex-end;padding:3.2vh 3.4vw 0;flex:0 0 auto}
+.datetime{text-align:right}
+.datetime .time{font-size:2.35vh;font-weight:650}
+.datetime .date{margin-top:.35vh;font-size:1.45vh;color:var(--muted)}
+
+.main{
+  flex:1;min-height:0;
+  overflow-x:hidden;overflow-y:auto;
+  display:flex;flex-direction:column;
+  padding:2.2vh 3.4vw 4.4vh;
 }
-function clearFavs()
-{
-  saveFavs([]);
-  picking = false;
-  removing = false;
-  page = "fav";
-  Render();
+.kicker{font-size:1.35vh;letter-spacing:.22em;text-transform:uppercase;color:#8b919c}
+.main h1{margin-top:1vh;font-size:4.2vh;font-weight:650;letter-spacing:-.045em}
+.main .sub{margin-top:8px;color:var(--muted);font-size:1.75vh}
+.section-title{margin-top:3vh;font-size:1.7vh;font-weight:650;color:#d7dbe3}
+
+.featured{
+  margin-top:2.6vh;min-height:28vh;border-radius:18px;
+  border:1px solid rgba(255,210,120,.16);
+  background:
+    linear-gradient(90deg, rgba(8,9,12,.72) 0%, rgba(8,9,12,.18) 52%, rgba(8,9,12,.08) 100%),
+    linear-gradient(135deg,#3a220c 0%, #8a5a18 46%, #1a140c 100%);
+  padding:3vh 2.4vw;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  cursor:pointer;
 }
-function addCustomApp()
-{
-  const name = ((document.getElementById("app-name") || {}).value || "").trim();
-  const url  = ((document.getElementById("app-url")  || {}).value || "").trim();
-  const icon = normalizeIcon((document.getElementById("app-icon") || {}).value || "");
-  if (!name || !/^https?:\/\//i.test(url)) return;
-  if (allApps().some(item => item.url === url)) return;
-  saveCustom(loadCustom().concat([{ name, url, icon, custom: true }]));
-  addingApp = false;
-  page = "apps";
-  Render();
-}
-function saveCustomIcon()
-{
-  const icon = normalizeIcon((document.getElementById("app-icon") || {}).value || "");
-  saveCustom(loadCustom().map(app => app.url === iconFor ? Object.assign({}, app, { icon }) : app));
-  saveFavs(loadFavs().map(app => app.url === iconFor ? Object.assign({}, app, { icon }) : app));
-  iconFor = "";
-  page = "set";
-  Render();
-}
-function removeCustomApp(url)
-{
-  saveCustom(loadCustom().filter(item => item.url !== url));
-  saveFavs(loadFavs().filter(item => item.url !== url));
-  Render();
+.featured .tag{font-size:1.35vh;letter-spacing:.18em;text-transform:uppercase;color:#f0d7a2}
+.featured h2{margin-top:10px;font-size:3.4vh;font-weight:700}
+.featured .watch{
+  margin-top:16px;width:fit-content;padding:1.05vh 1.2vw;
+  border-radius:10px;background:#fff;color:#111;font-size:1.55vh;font-weight:700;
 }
 
-function bumpIdle()
-{
-  clearTimeout(idleTimer);
-  if (saverOn) return;
-  const ms = getSaver().ms;
-  if (!ms) return;
-  idleTimer = setTimeout(showSaver, ms);
+.actions{display:flex;gap:10px;margin-top:2.2vh}
+.btn{
+  border:1px solid var(--line);background:var(--card);color:var(--soft);
+  border-radius:10px;padding:1.1vh 1.1vw;font-size:1.55vh;font-weight:600;cursor:pointer;
 }
-function showSaver()
-{
-  if (saverOn) return;
-  saverOn = true;
-  const box = document.createElement("div");
-  box.className = "saver";
-  box.id = "saver";
-  box.onclick = hideSaver;
-  box.innerHTML = `<div class="stime" id="stime"></div><div class="sdate" id="sdate"></div>`;
-  screen.appendChild(box);
-  paintClock();
-}
-function hideSaver()
-{
-  saverOn = false;
-  const box = document.getElementById("saver");
-  if (box) box.remove();
-  bumpIdle();
-}
+.btn:hover{background:var(--card-hover)}
 
-function iconTag(src, name)
-{
-  const letter = (name || "?").charAt(0).toUpperCase();
-  return `
-    <img src="${src}" alt="${name}"
-      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-    <div class="fallback" style="display:none">${letter}</div>
-  `;
+.grid{margin-top:2.2vh;display:grid;grid-template-columns:repeat(4,1fr);gap:1.15vw}
+.tile{
+  aspect-ratio:1.5;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1.15vh;cursor:pointer;
 }
-
-function Render()
-{
-  saverOn = false;
-  screen.innerHTML = `
-    <aside class="sidebar">
-      <div class="brand">Belmonte <b>TV</b></div>
-      <nav class="nav">
-        ${MENU.map(item => `
-          <div class="nav-item ${page === item.id ? "active" : ""}" onclick="Go('${item.id}')">
-            ${iconTag(item.icon, item.label)}
-            <span>${item.label}</span>
-          </div>
-        `).join("")}
-      </nav>
-    </aside>
-    <div class="stage">
-      <div class="topbar">
-        <div class="datetime">
-          <div class="time" id="clock">00:00</div>
-          <div class="date" id="date"></div>
-        </div>
-      </div>
-      <section class="main" id="main"></section>
-    </div>
-  `;
-  DrawPage();
-  UpdateClock();
-  bumpIdle();
+.tile:hover{background:var(--card-hover);border-color:rgba(255,255,255,.16)}
+.tile img{width:38%;height:38%;object-fit:contain}
+.fallback{
+  width:38%;height:38%;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:3vh;background:#1b2028;color:#fff;
 }
+.tile label{font-size:1.55vh;font-weight:600;color:var(--soft)}
+.tile.disabled{opacity:.38;cursor:default}
 
-function Go(id)
-{
-  picking = false;
-  removing = false;
-  addingApp = false;
-  choosingTz = false;
-  iconFor = "";
-  if (id === "web") return OpenURL("https://www.google.com");
-  page = id;
-  Render();
+.empty{margin-top:3vh;color:var(--muted);font-size:1.7vh;line-height:1.6}
+
+.form{margin-top:3vh;width:min(560px,68%);display:flex;flex-direction:column;gap:10px}
+.form input{
+  width:100%;border:1px solid var(--line);background:var(--card);color:var(--text);
+  border-radius:12px;padding:1.5vh 1.1vw;font-size:1.7vh;outline:none;
 }
+.form input:focus{border-color:rgba(255,255,255,.22)}
 
-function DrawPage()
-{
-  const main = document.getElementById("main");
-  const favs = loadFavs();
-  const custom = loadCustom();
-  const apps = allApps();
-  const start = getStart();
-
-  if (page === "home")
-  {
-    const row = favs.length ? favs.slice(0, 4) : apps.slice(0, 4);
-    main.innerHTML = `
-      <h1>Home</h1>
-      <div class="featured" onclick="OpenURL('https://pluto.tv')">
-        <div class="tag">Live TV</div>
-        <h2>Pluto TV</h2>
-        <div class="watch">Watch live</div>
-      </div>
-      <div class="section-title">${favs.length ? "Favorites" : "Suggested"}</div>
-      <div class="grid">${row.map(app => AppTile(app, "open")).join("")}</div>
-    `;
-    return;
-  }
-  if (page === "live")
-  {
-    main.innerHTML = `
-      <h1>Live TV</h1>
-      <div class="featured" onclick="OpenURL('https://pluto.tv')">
-        <div class="tag">Now available</div>
-        <h2>Pluto TV</h2>
-        <div class="watch">Watch live</div>
-      </div>
-      <div class="grid">${LIVE.map(app => AppTile(app, "open")).join("")}</div>
-    `;
-    return;
-  }
-  if (page === "apps")
-  {
-    main.innerHTML = `<h1>Apps</h1><div class="grid">${apps.map(app => AppTile(app, "open")).join("")}</div>`;
-    return;
-  }
-  if (page === "fav")
-  {
-    if (picking)
-    {
-      main.innerHTML = `
-        <h1>Add favorite</h1>
-        <div class="actions"><button class="btn" onclick="picking=false; Render()">Cancel</button></div>
-        <div class="grid">${apps.map(app => AppTile(app, isFav(app.url) ? "disabled" : "add")).join("")}</div>
-      `;
-      return;
-    }
-    main.innerHTML = `
-      <h1>Favorites</h1>
-      <div class="actions">
-        <button class="btn" onclick="picking=true; removing=false; Render()">Add favorite</button>
-        ${favs.length ? `<button class="btn" onclick="removing=${!removing}; Render()">${removing ? "Done" : "Remove"}</button>` : ""}
-        ${favs.length ? `<button class="btn" onclick="clearFavs()">Clear all</button>` : ""}
-      </div>
-      ${favs.length
-        ? `<div class="grid">${favs.map(app => AppTile(app, removing ? "remove" : "open")).join("")}</div>`
-        : `<div class="empty">No favorites yet.</div>`}
-    `;
-    return;
-  }
-  if (page === "set")
-  {
-    if (choosingTz)
-    {
-      main.innerHTML = `
-        <h1>Location</h1>
-        <div class="settings-list">
-          ${ZONES.map(item => `<div class="row" onclick="setTz('${item.id}')">${item.city}${getTz() === item.id ? "  ·  selected" : ""}</div>`).join("")}
-          <div class="row" onclick="choosingTz=false; Render()">Cancel</div>
-        </div>
-      `;
-      return;
-    }
-    if (addingApp || iconFor)
-    {
-      main.innerHTML = `
-        <h1>${iconFor ? "Set icon" : "Add app"}</h1>
-        <div class="form">
-          ${iconFor ? "" : `<input id="app-name" type="text" placeholder="App name">`}
-          ${iconFor ? "" : `<input id="app-url" type="text" placeholder="https://example.com">`}
-          <input id="app-icon" type="text" placeholder="icon file  e.g. reddit.png">
-          <div class="actions">
-            <button class="btn" onclick="${iconFor ? "saveCustomIcon()" : "addCustomApp()"}">Save</button>
-            <button class="btn" onclick="addingApp=false; iconFor=''; Render()">Cancel</button>
-          </div>
-        </div>
-      `;
-      return;
-    }
-    main.innerHTML = `
-      <h1>Settings</h1>
-      <div class="section-title">Start page</div>
-      <div class="settings-list">
-        <div class="row" onclick="setStart('home')">Home${start === "home" ? "  ·  selected" : ""}</div>
-        <div class="row" onclick="setStart('live')">Live TV${start === "live" ? "  ·  selected" : ""}</div>
-        <div class="row" onclick="setStart('apps')">Apps${start === "apps" ? "  ·  selected" : ""}</div>
-      </div>
-      <div class="section-title">Location</div>
-      <div class="settings-list">
-        <div class="row" onclick="choosingTz=true; Render()">${tzLabel()}</div>
-      </div>
-      <div class="section-title">Screensaver</div>
-      <div class="settings-list">
-        ${SAVER_OPTS.map(item => `<div class="row" onclick="setSaver('${item.id}')">${item.label}${getSaver().id === item.id ? "  ·  selected" : ""}</div>`).join("")}
-      </div>
-      <div class="section-title">System</div>
-      <div class="settings-list">
-        <div class="row" onclick="addingApp=true; Render()">Add app</div>
-        <div class="row" onclick="location.reload()">Reload interface</div>
-        <div class="row" onclick="clearFavs()">Clear favorites</div>
-        <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 3.1</div>
-      </div>
-      ${custom.length ? `
-        <div class="section-title">Custom apps</div>
-        <div class="settings-list">
-          ${custom.map(app => `
-            <div class="row" onclick="iconFor='${app.url}'; Render()">Set icon · ${app.name}</div>
-            <div class="row" onclick="removeCustomApp('${app.url}')">Remove ${app.name}</div>
-          `).join("")}
-        </div>` : ""}
-    `;
-  }
+.settings-list{margin-top:1.4vh;width:min(560px,68%);display:flex;flex-direction:column;gap:8px}
+.row{
+  padding:1.8vh 1.2vw;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;cursor:pointer;font-size:1.7vh;font-weight:600;color:var(--soft);
 }
+.row:hover{background:var(--card-hover)}
+.row.static{cursor:default;color:var(--muted);font-weight:500}
 
-function AppTile(app, mode)
-{
-  if (mode === "disabled")
-    return `<div class="tile disabled">${iconTag(app.icon, app.name)}<label>${app.name}</label></div>`;
-  const click =
-    mode === "add"    ? `addFav('${app.url}')` :
-    mode === "remove" ? `removeFav('${app.url}')` :
-                        `OpenURL('${app.url}')`;
-  return `<div class="tile" onclick="${click}">${iconTag(app.icon, app.name)}<label>${app.name}</label></div>`;
+.saver{
+  position:absolute;inset:0;
+  background:#000;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  cursor:pointer;z-index:50;
 }
-
-function OpenURL(url)
-{
-  clearTimeout(idleTimer);
-  window.location.href = url;
+.saver .stime{
+  font-weight:300;
+  font-size:16vh;
+  letter-spacing:.08em;
+  color:#f4f6f8;
+  line-height:1;
 }
-
-function paintClock()
-{
-  const parts = nowParts();
-  const clock = document.getElementById("clock");
-  const date = document.getElementById("date");
-  const stime = document.getElementById("stime");
-  const sdate = document.getElementById("sdate");
-  if (clock) clock.textContent = parts.time;
-  if (date) date.textContent = parts.date;
-  if (stime) stime.textContent = parts.time;
-  if (sdate) sdate.textContent = parts.date;
-}
-function UpdateClock()
-{
-  paintClock();
-  if (window.ClockTimer) clearInterval(window.ClockTimer);
-  window.ClockTimer = setInterval(paintClock, 1000);
+.saver .sdate{
+  margin-top:2.4vh;
+  font-size:2.1vh;
+  font-weight:400;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:#7a7f88;
 }
