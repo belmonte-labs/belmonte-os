@@ -1,5 +1,6 @@
 const screen = document.getElementById("screen");
 const FAV_KEY = "belmonte_favs";
+const APP_KEY = "belmonte_custom_apps";
 
 const MENU = [
   { id: "home", label: "Home",      icon: "icons/home.png" },
@@ -28,15 +29,15 @@ const LIVE = [
 let page = "home";
 let picking = false;
 let removing = false;
+let addingApp = false;
 
 Render();
 
-function loadFavs()
+function readList(key)
 {
   try
   {
-    const raw = localStorage.getItem(FAV_KEY);
-    const list = raw ? JSON.parse(raw) : [];
+    const list = JSON.parse(localStorage.getItem(key) || "[]");
     return Array.isArray(list) ? list : [];
   }
   catch (e)
@@ -45,19 +46,16 @@ function loadFavs()
   }
 }
 
-function saveFavs(list)
-{
-  localStorage.setItem(FAV_KEY, JSON.stringify(list));
-}
-
-function isFav(url)
-{
-  return loadFavs().some(item => item.url === url);
-}
+function loadFavs(){ return readList(FAV_KEY); }
+function saveFavs(list){ localStorage.setItem(FAV_KEY, JSON.stringify(list)); }
+function loadCustom(){ return readList(APP_KEY); }
+function saveCustom(list){ localStorage.setItem(APP_KEY, JSON.stringify(list)); }
+function allApps(){ return APPS.concat(loadCustom()); }
+function isFav(url){ return loadFavs().some(item => item.url === url); }
 
 function addFav(url)
 {
-  const app = APPS.find(item => item.url === url);
+  const app = allApps().find(item => item.url === url);
   if (!app || isFav(url)) return;
   saveFavs(loadFavs().concat([app]));
   picking = false;
@@ -77,6 +75,35 @@ function clearFavs()
   picking = false;
   removing = false;
   page = "fav";
+  Render();
+}
+
+function addCustomApp()
+{
+  const name = (document.getElementById("app-name") || {}).value || "";
+  const url  = (document.getElementById("app-url")  || {}).value || "";
+  const cleanName = name.trim();
+  const cleanUrl  = url.trim();
+
+  if (!cleanName || !/^https?:\/\//i.test(cleanUrl)) return;
+  if (allApps().some(item => item.url === cleanUrl)) return;
+
+  saveCustom(loadCustom().concat([{
+    name: cleanName,
+    url: cleanUrl,
+    icon: "icons/browser.png",
+    custom: true
+  }]));
+
+  addingApp = false;
+  page = "apps";
+  Render();
+}
+
+function removeCustomApp(url)
+{
+  saveCustom(loadCustom().filter(item => item.url !== url));
+  saveFavs(loadFavs().filter(item => item.url !== url));
   Render();
 }
 
@@ -123,6 +150,7 @@ function Go(id)
 {
   picking = false;
   removing = false;
+  addingApp = false;
   if (id === "web") return OpenURL("https://www.google.com");
   page = id;
   Render();
@@ -132,19 +160,18 @@ function DrawPage()
 {
   const main = document.getElementById("main");
   const favs = loadFavs();
+  const custom = loadCustom();
+  const apps = allApps();
 
   if (page === "home")
   {
-    const row = favs.length ? favs.slice(0, 4) : APPS.slice(0, 4);
+    const row = favs.length ? favs.slice(0, 4) : apps.slice(0, 4);
     const title = favs.length ? "Favorites" : "Suggested";
     main.innerHTML = `
-      <div class="kicker">Belmonte TV</div>
       <h1>Home</h1>
-      <div class="sub">Live television and your pinned apps</div>
       <div class="featured" onclick="OpenURL('https://pluto.tv')">
         <div class="tag">Live TV</div>
         <h2>Pluto TV</h2>
-        <p>Free live channels. Press Watch live to start.</p>
         <div class="watch">Watch live</div>
       </div>
       <div class="section-title">${title}</div>
@@ -156,13 +183,10 @@ function DrawPage()
   if (page === "live")
   {
     main.innerHTML = `
-      <div class="kicker">Broadcast</div>
       <h1>Live TV</h1>
-      <div class="sub">Free live channels and streams</div>
       <div class="featured" onclick="OpenURL('https://pluto.tv')">
         <div class="tag">Now available</div>
         <h2>Pluto TV</h2>
-        <p>Watch live news, movies and series.</p>
         <div class="watch">Watch live</div>
       </div>
       <div class="grid">${LIVE.map(app => AppTile(app, "open")).join("")}</div>
@@ -173,10 +197,8 @@ function DrawPage()
   if (page === "apps")
   {
     main.innerHTML = `
-      <div class="kicker">Library</div>
       <h1>Apps</h1>
-      <div class="sub">Select an application</div>
-      <div class="grid">${APPS.map(app => AppTile(app, "open")).join("")}</div>
+      <div class="grid">${apps.map(app => AppTile(app, "open")).join("")}</div>
     `;
     return;
   }
@@ -186,23 +208,19 @@ function DrawPage()
     if (picking)
     {
       main.innerHTML = `
-        <div class="kicker">Library</div>
         <h1>Add favorite</h1>
-        <div class="sub">Choose an app to pin</div>
         <div class="actions">
           <button class="btn" onclick="picking=false; Render()">Cancel</button>
         </div>
         <div class="grid">
-          ${APPS.map(app => AppTile(app, isFav(app.url) ? "disabled" : "add")).join("")}
+          ${apps.map(app => AppTile(app, isFav(app.url) ? "disabled" : "add")).join("")}
         </div>
       `;
       return;
     }
 
     main.innerHTML = `
-      <div class="kicker">Library</div>
       <h1>Favorites</h1>
-      <div class="sub">${removing ? "Tap an app to remove it" : "Your pinned apps"}</div>
       <div class="actions">
         <button class="btn" onclick="picking=true; removing=false; Render()">Add favorite</button>
         ${favs.length ? `<button class="btn" onclick="removing=${!removing}; Render()">${removing ? "Done" : "Remove"}</button>` : ""}
@@ -211,7 +229,7 @@ function DrawPage()
       ${
         favs.length
           ? `<div class="grid">${favs.map(app => AppTile(app, removing ? "remove" : "open")).join("")}</div>`
-          : `<div class="empty">No favorites yet.<br>Use Add favorite to pin an app.</div>`
+          : `<div class="empty">No favorites yet.</div>`
       }
     `;
     return;
@@ -219,16 +237,41 @@ function DrawPage()
 
   if (page === "set")
   {
+    if (addingApp)
+    {
+      main.innerHTML = `
+        <h1>Add app</h1>
+        <div class="form">
+          <input id="app-name" type="text" placeholder="App name">
+          <input id="app-url" type="text" placeholder="https://example.com">
+          <div class="actions">
+            <button class="btn" onclick="addCustomApp()">Save app</button>
+            <button class="btn" onclick="addingApp=false; Render()">Cancel</button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
     main.innerHTML = `
-      <div class="kicker">System</div>
       <h1>Settings</h1>
-      <div class="sub">Belmonte TV</div>
       <div class="settings-list">
+        <div class="row" onclick="addingApp=true; Render()">Add app</div>
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 2.6</div>
+        <div class="row static">Version 2.7</div>
       </div>
+      ${
+        custom.length
+          ? `<div class="section-title">Custom apps</div>
+             <div class="settings-list">
+               ${custom.map(app => `
+                 <div class="row" onclick="removeCustomApp('${app.url}')">Remove ${app.name}</div>
+               `).join("")}
+             </div>`
+          : ""
+      }
     `;
   }
 }
