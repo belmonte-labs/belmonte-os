@@ -3,23 +3,33 @@ const FAV_KEY = "belmonte_favs";
 const APP_KEY = "belmonte_custom_apps";
 const START_KEY = "belmonte_start";
 const TZ_KEY = "belmonte_tz";
-const IDLE_MS = 90000;
+const SCREEN_KEY = "belmonte_saver";
+
+const SAVER_OPTS = [
+  { id: "off", label: "Off",         ms: 0 },
+  { id: "30",  label: "30 seconds",  ms: 30000 },
+  { id: "60",  label: "1 minute",    ms: 60000 },
+  { id: "90",  label: "90 seconds",  ms: 90000 },
+  { id: "120", label: "2 minutes",   ms: 120000 },
+  { id: "300", label: "5 minutes",   ms: 300000 },
+  { id: "600", label: "10 minutes",  ms: 600000 }
+];
 
 const ZONES = [
-  { id: "America/New_York",      city: "New York" },
-  { id: "America/Los_Angeles",   city: "Los Angeles" },
-  { id: "America/Chicago",       city: "Chicago" },
-  { id: "America/Toronto",       city: "Toronto" },
-  { id: "America/Sao_Paulo",     city: "Sao Paulo" },
-  { id: "America/Mexico_City",   city: "Mexico City" },
-  { id: "Europe/London",         city: "London" },
-  { id: "Europe/Paris",          city: "Paris" },
-  { id: "Europe/Berlin",         city: "Berlin" },
-  { id: "Asia/Dubai",            city: "Dubai" },
-  { id: "Asia/Kolkata",          city: "Mumbai" },
-  { id: "Asia/Tokyo",            city: "Tokyo" },
-  { id: "Asia/Seoul",            city: "Seoul" },
-  { id: "Australia/Sydney",      city: "Sydney" }
+  { id: "America/New_York",    city: "New York" },
+  { id: "America/Los_Angeles", city: "Los Angeles" },
+  { id: "America/Chicago",     city: "Chicago" },
+  { id: "America/Toronto",     city: "Toronto" },
+  { id: "America/Sao_Paulo",   city: "Sao Paulo" },
+  { id: "America/Mexico_City", city: "Mexico City" },
+  { id: "Europe/London",       city: "London" },
+  { id: "Europe/Paris",        city: "Paris" },
+  { id: "Europe/Berlin",       city: "Berlin" },
+  { id: "Asia/Dubai",          city: "Dubai" },
+  { id: "Asia/Kolkata",        city: "Mumbai" },
+  { id: "Asia/Tokyo",          city: "Tokyo" },
+  { id: "Asia/Seoul",          city: "Seoul" },
+  { id: "Australia/Sydney",    city: "Sydney" }
 ];
 
 const MENU = [
@@ -84,13 +94,24 @@ function tzLabel()
   const found = ZONES.find(item => item.id === getTz());
   return found ? found.city : "New York";
 }
+function getSaver()
+{
+  const id = localStorage.getItem(SCREEN_KEY) || "90";
+  return SAVER_OPTS.find(item => item.id === id) || SAVER_OPTS[3];
+}
+function setSaver(id)
+{
+  localStorage.setItem(SCREEN_KEY, id);
+  page = "set";
+  Render();
+}
 
 function nowParts()
 {
   const tz = getTz();
   const now = new Date();
   return {
-    time: now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: tz }),
+    time: now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: tz }),
     date: now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: tz })
   };
 }
@@ -107,7 +128,6 @@ function readList(key)
     return [];
   }
 }
-
 function loadFavs(){ return readList(FAV_KEY); }
 function saveFavs(list){ localStorage.setItem(FAV_KEY, JSON.stringify(list)); }
 function loadCustom(){ return readList(APP_KEY); }
@@ -146,7 +166,6 @@ function clearFavs()
   page = "fav";
   Render();
 }
-
 function addCustomApp()
 {
   const name = ((document.getElementById("app-name") || {}).value || "").trim();
@@ -179,20 +198,19 @@ function bumpIdle()
 {
   clearTimeout(idleTimer);
   if (saverOn) return;
-  idleTimer = setTimeout(showSaver, IDLE_MS);
+  const ms = getSaver().ms;
+  if (!ms) return;
+  idleTimer = setTimeout(showSaver, ms);
 }
 function showSaver()
 {
+  if (saverOn) return;
   saverOn = true;
   const box = document.createElement("div");
   box.className = "saver";
   box.id = "saver";
   box.onclick = hideSaver;
-  box.innerHTML = `
-    <div class="stime" id="stime"></div>
-    <div class="sdate" id="sdate"></div>
-    <div class="sbrand">Belmonte TV</div>
-  `;
+  box.innerHTML = `<div class="stime" id="stime"></div><div class="sdate" id="sdate"></div>`;
   screen.appendChild(box);
   paintClock();
 }
@@ -222,8 +240,7 @@ function Render()
       <div class="brand">Belmonte <b>TV</b></div>
       <nav class="nav">
         ${MENU.map(item => `
-          <div class="nav-item ${page === item.id ? "active" : ""}"
-               onclick="Go('${item.id}')">
+          <div class="nav-item ${page === item.id ? "active" : ""}" onclick="Go('${item.id}')">
             ${iconTag(item.icon, item.label)}
             <span>${item.label}</span>
           </div>
@@ -280,7 +297,6 @@ function DrawPage()
     `;
     return;
   }
-
   if (page === "live")
   {
     main.innerHTML = `
@@ -294,13 +310,11 @@ function DrawPage()
     `;
     return;
   }
-
   if (page === "apps")
   {
     main.innerHTML = `<h1>Apps</h1><div class="grid">${apps.map(app => AppTile(app, "open")).join("")}</div>`;
     return;
   }
-
   if (page === "fav")
   {
     if (picking)
@@ -325,7 +339,6 @@ function DrawPage()
     `;
     return;
   }
-
   if (page === "set")
   {
     if (choosingTz)
@@ -333,9 +346,7 @@ function DrawPage()
       main.innerHTML = `
         <h1>Location</h1>
         <div class="settings-list">
-          ${ZONES.map(item => `
-            <div class="row" onclick="setTz('${item.id}')">${item.city}${getTz() === item.id ? "  ·  selected" : ""}</div>
-          `).join("")}
+          ${ZONES.map(item => `<div class="row" onclick="setTz('${item.id}')">${item.city}${getTz() === item.id ? "  ·  selected" : ""}</div>`).join("")}
           <div class="row" onclick="choosingTz=false; Render()">Cancel</div>
         </div>
       `;
@@ -357,7 +368,6 @@ function DrawPage()
       `;
       return;
     }
-
     main.innerHTML = `
       <h1>Settings</h1>
       <div class="section-title">Start page</div>
@@ -370,13 +380,17 @@ function DrawPage()
       <div class="settings-list">
         <div class="row" onclick="choosingTz=true; Render()">${tzLabel()}</div>
       </div>
+      <div class="section-title">Screensaver</div>
+      <div class="settings-list">
+        ${SAVER_OPTS.map(item => `<div class="row" onclick="setSaver('${item.id}')">${item.label}${getSaver().id === item.id ? "  ·  selected" : ""}</div>`).join("")}
+      </div>
       <div class="section-title">System</div>
       <div class="settings-list">
         <div class="row" onclick="addingApp=true; Render()">Add app</div>
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 3.0</div>
+        <div class="row static">Version 3.1</div>
       </div>
       ${custom.length ? `
         <div class="section-title">Custom apps</div>
@@ -393,9 +407,7 @@ function DrawPage()
 function AppTile(app, mode)
 {
   if (mode === "disabled")
-  {
     return `<div class="tile disabled">${iconTag(app.icon, app.name)}<label>${app.name}</label></div>`;
-  }
   const click =
     mode === "add"    ? `addFav('${app.url}')` :
     mode === "remove" ? `removeFav('${app.url}')` :
@@ -421,7 +433,6 @@ function paintClock()
   if (stime) stime.textContent = parts.time;
   if (sdate) sdate.textContent = parts.date;
 }
-
 function UpdateClock()
 {
   paintClock();
