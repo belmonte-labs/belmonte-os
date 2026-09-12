@@ -129,12 +129,9 @@ function setWall(id)
   page = "set";
   Render();
 }
-function saveWallFile()
+function pickWall(file)
 {
-  let file = ((document.getElementById("wall-file") || {}).value || "").trim();
-  if (!file) return;
-  if (file.indexOf("/") === -1) file = "wallpapers/" + file;
-  localStorage.setItem(WALL_FILE_KEY, file);
+  localStorage.setItem(WALL_FILE_KEY, "wallpapers/" + file);
   localStorage.setItem(WALL_KEY, "custom");
   settingWall = false;
   page = "set";
@@ -148,6 +145,47 @@ function applyWall()
   if (!file) return;
   screen.style.backgroundImage =
     'linear-gradient(rgba(8,9,12,.62), rgba(8,9,12,.62)), url("' + file + '")';
+}
+function showWallPicker()
+{
+  const main = document.getElementById("main");
+  main.innerHTML = `<h1>Custom wallpaper</h1><div class="empty">Loading...</div>`;
+
+  fetch("wallpapers/list.json?v=1")
+    .then(function (res) { return res.ok ? res.json() : []; })
+    .then(function (list)
+    {
+      if (!list || !list.length)
+      {
+        main.innerHTML = `
+          <h1>Custom wallpaper</h1>
+          <div class="empty">Add photo names to wallpapers/list.json</div>
+          <div class="actions"><button class="btn" onclick="settingWall=false; Render()">Back</button></div>
+        `;
+        return;
+      }
+      const current = localStorage.getItem(WALL_FILE_KEY) || "";
+      main.innerHTML = `
+        <h1>Custom wallpaper</h1>
+        <div class="wall-grid">
+          ${list.map(function (file)
+          {
+            const path = "wallpapers/" + file;
+            const on = current === path ? "on" : "";
+            return `<div class="wall-pick ${on}" onclick="pickWall('${file}')"><img src="${path}" alt=""></div>`;
+          }).join("")}
+        </div>
+        <div class="actions"><button class="btn" onclick="settingWall=false; Render()">Back</button></div>
+      `;
+    })
+    .catch(function ()
+    {
+      main.innerHTML = `
+        <h1>Custom wallpaper</h1>
+        <div class="empty">Could not read wallpapers/list.json</div>
+        <div class="actions"><button class="btn" onclick="settingWall=false; Render()">Back</button></div>
+      `;
+    });
 }
 function getTz()
 {
@@ -437,16 +475,7 @@ function DrawPage()
   {
     if (settingWall)
     {
-      main.innerHTML = `
-        <h1>Custom wallpaper</h1>
-        <div class="form">
-          <input id="wall-file" type="text" placeholder="living.jpg  or  wallpapers/living.jpg">
-          <div class="actions">
-            <button class="btn" onclick="saveWallFile()">Save</button>
-            <button class="btn" onclick="settingWall=false; Render()">Cancel</button>
-          </div>
-        </div>
-      `;
+      showWallPicker();
       return;
     }
     if (choosingTz)
@@ -506,7 +535,7 @@ function DrawPage()
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 3.5</div>
+        <div class="row static">Version 3.6</div>
       </div>
       ${custom.length ? `
         <div class="section-title">Custom apps</div>
