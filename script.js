@@ -336,10 +336,8 @@ function DrawPage()
   {
     main.innerHTML = `
       <h1>Live TV</h1>
-      <div class="featured" id="featured"></div>
       <div class="grid">${LIVE.map(app => AppTile(app, "open")).join("")}</div>
     `;
-    startFeat();
     return;
   }
   if (page === "apps")
@@ -422,7 +420,7 @@ function DrawPage()
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 3.2</div>
+        <div class="row static">Version 3.3</div>
       </div>
       ${custom.length ? `
         <div class="section-title">Custom apps</div>
