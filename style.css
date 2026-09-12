@@ -18,7 +18,7 @@ html,body{
   --bg:#0b0d12;
   --glow1:rgba(255,255,255,.06);
   --glow2:rgba(140,160,200,.05);
-  --side:rgba(12,14,20,.92);
+  --side:rgba(12,14,20,.62);
   --card:rgba(23,27,36,.62);
   --card2:rgba(36,42,54,.82);
   --line:rgba(255,255,255,.08);
@@ -27,7 +27,7 @@ html,body{
   --bg:#16181d;
   --glow1:rgba(255,255,255,.07);
   --glow2:rgba(180,190,210,.06);
-  --side:rgba(22,24,30,.94);
+  --side:rgba(22,24,30,.62);
   --card:rgba(40,44,52,.66);
   --card2:rgba(56,61,72,.88);
   --line:rgba(255,255,255,.10);
@@ -36,7 +36,7 @@ html,body{
   --bg:#14110f;
   --glow1:rgba(255,190,120,.08);
   --glow2:rgba(160,90,40,.07);
-  --side:rgba(22,16,12,.94);
+  --side:rgba(22,16,12,.62);
   --card:rgba(42,32,24,.66);
   --card2:rgba(62,46,34,.88);
   --line:rgba(255,210,160,.10);
@@ -45,7 +45,7 @@ html,body{
   --bg:#000;
   --glow1:rgba(255,255,255,.03);
   --glow2:rgba(255,255,255,.02);
-  --side:rgba(0,0,0,.96);
+  --side:rgba(0,0,0,.55);
   --card:rgba(18,18,18,.78);
   --card2:rgba(32,32,32,.92);
   --line:rgba(255,255,255,.08);
@@ -54,16 +54,6 @@ html,body{
   background-image:
     radial-gradient(900px 420px at 78% 0%, var(--glow1), transparent 55%),
     radial-gradient(700px 380px at 30% 110%, var(--glow2), transparent 50%);
-}
-#screen.wall-soft{
-  background-image:
-    radial-gradient(800px 500px at 85% 10%, rgba(255,255,255,.10), transparent 58%),
-    radial-gradient(700px 420px at 10% 90%, rgba(120,150,200,.10), transparent 52%);
-}
-#screen.wall-ember{
-  background-image:
-    radial-gradient(900px 520px at 80% 0%, rgba(255,150,70,.16), transparent 60%),
-    radial-gradient(700px 400px at 15% 100%, rgba(80,20,10,.20), transparent 55%);
 }
 
 .sidebar{
@@ -166,13 +156,6 @@ html,body{
 .row:hover{background:var(--card2);transform:translateY(-1px)}
 .row.static{cursor:default;color:#8d93a0;font-weight:500;transform:none}
 
-.saver{
-  position:absolute;inset:0;background:#000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  cursor:pointer;z-index:50;
-}
-.saver .stime{font-size:84px;font-weight:300;letter-spacing:6px;color:#f4f6f8}
-.saver .sdate{margin-top:16px;font-size:16px;letter-spacing:4px;text-transform:uppercase;color:#7a7f88}
 .wall-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -194,6 +177,12 @@ html,body{
   object-fit:cover;
   display:block;
 }
-.wall-pick.on{
-  border-color:#fff;
+.wall-pick.on{border-color:#fff}
+
+.saver{
+  position:absolute;inset:0;background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;z-index:50;
 }
+.saver .stime{font-size:84px;font-weight:300;letter-spacing:6px;color:#f4f6f8}
+.saver .sdate{margin-top:16px;font-size:16px;letter-spacing:4px;text-transform:uppercase;color:#7a7f88}
