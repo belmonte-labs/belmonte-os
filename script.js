@@ -56,6 +56,14 @@ const LIVE = [
   { name: "Twitch",   url: "https://www.twitch.tv", icon: "icons/twitch.png" }
 ];
 
+const FEATURED = [
+  { name: "Pluto TV", tag: "Live TV", url: "https://pluto.tv" },
+  { name: "YouTube",  tag: "Video",   url: "https://www.youtube.com" },
+  { name: "Twitch",   tag: "Live",    url: "https://www.twitch.tv" },
+  { name: "Tubi",     tag: "Movies",  url: "https://tubitv.com" },
+  { name: "Music",    tag: "Audio",   url: "https://music.youtube.com" }
+];
+
 let page = getStart();
 let picking = false;
 let removing = false;
@@ -64,6 +72,8 @@ let iconFor = "";
 let choosingTz = false;
 let saverOn = false;
 let idleTimer = null;
+let featIndex = 0;
+let featTimer = null;
 
 Render();
 
@@ -142,6 +152,33 @@ function normalizeIcon(value)
   if (icon.indexOf("/") === -1) icon = "icons/" + icon;
   if (!/\.(png|jpg|jpeg|webp|svg)$/i.test(icon)) icon += ".png";
   return icon;
+}
+
+function currentFeat()
+{
+  return FEATURED[featIndex % FEATURED.length];
+}
+function paintFeatured()
+{
+  const el = document.getElementById("featured");
+  if (!el) return;
+  const item = currentFeat();
+  el.onclick = function () { OpenURL(item.url); };
+  el.innerHTML = `
+    <div class="tag">${item.tag}</div>
+    <h2>${item.name}</h2>
+    <div class="watch">Watch</div>
+  `;
+}
+function startFeat()
+{
+  clearInterval(featTimer);
+  paintFeatured();
+  featTimer = setInterval(function ()
+  {
+    featIndex = (featIndex + 1) % FEATURED.length;
+    paintFeatured();
+  }, 8000);
 }
 
 function addFav(url)
@@ -235,6 +272,7 @@ function iconTag(src, name)
 function Render()
 {
   saverOn = false;
+  clearInterval(featTimer);
   screen.innerHTML = `
     <aside class="sidebar">
       <div class="brand">Belmonte <b>TV</b></div>
@@ -287,27 +325,21 @@ function DrawPage()
     const row = favs.length ? favs.slice(0, 4) : apps.slice(0, 4);
     main.innerHTML = `
       <h1>Home</h1>
-      <div class="featured" onclick="OpenURL('https://pluto.tv')">
-        <div class="tag">Live TV</div>
-        <h2>Pluto TV</h2>
-        <div class="watch">Watch live</div>
-      </div>
+      <div class="featured" id="featured"></div>
       <div class="section-title">${favs.length ? "Favorites" : "Suggested"}</div>
       <div class="grid">${row.map(app => AppTile(app, "open")).join("")}</div>
     `;
+    startFeat();
     return;
   }
   if (page === "live")
   {
     main.innerHTML = `
       <h1>Live TV</h1>
-      <div class="featured" onclick="OpenURL('https://pluto.tv')">
-        <div class="tag">Now available</div>
-        <h2>Pluto TV</h2>
-        <div class="watch">Watch live</div>
-      </div>
+      <div class="featured" id="featured"></div>
       <div class="grid">${LIVE.map(app => AppTile(app, "open")).join("")}</div>
     `;
+    startFeat();
     return;
   }
   if (page === "apps")
@@ -390,7 +422,7 @@ function DrawPage()
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 3.1</div>
+        <div class="row static">Version 3.2</div>
       </div>
       ${custom.length ? `
         <div class="section-title">Custom apps</div>
@@ -418,6 +450,7 @@ function AppTile(app, mode)
 function OpenURL(url)
 {
   clearTimeout(idleTimer);
+  clearInterval(featTimer);
   window.location.href = url;
 }
 
