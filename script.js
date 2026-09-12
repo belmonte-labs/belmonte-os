@@ -67,11 +67,11 @@ const LIVE = [
 ];
 
 const FEATURED = [
-  { name: "Pluto TV", tag: "Live TV", url: "https://pluto.tv" },
-  { name: "YouTube",  tag: "Video",   url: "https://www.youtube.com" },
-  { name: "Twitch",   tag: "Live",    url: "https://www.twitch.tv" },
-  { name: "Tubi",     tag: "Movies",  url: "https://tubitv.com" },
-  { name: "Music",    tag: "Audio",   url: "https://music.youtube.com" }
+  { name: "Pluto TV", tag: "Live TV", url: "https://pluto.tv",          banner: "pluto" },
+  { name: "YouTube",  tag: "Video",   url: "https://www.youtube.com",   banner: "youtube" },
+  { name: "Twitch",   tag: "Live",    url: "https://www.twitch.tv",     banner: "twitch" },
+  { name: "Tubi",     tag: "Movies",  url: "https://tubitv.com",        banner: "tubi" },
+  { name: "Music",    tag: "Audio",   url: "https://music.youtube.com", banner: "music" }
 ];
 
 let page = getStart();
@@ -240,6 +240,33 @@ function paintFeatured()
     <h2>${item.name}</h2>
     <div class="watch">Watch</div>
   `;
+  el.style.backgroundImage = "";
+  tryBanner(el, item.banner);
+}
+function tryBanner(el, slug)
+{
+  const files = [
+    "banners/" + slug + ".jpg",
+    "banners/" + slug + ".jpeg",
+    "banners/" + slug + ".png"
+  ];
+  let i = 0;
+  function next()
+  {
+    if (i >= files.length) return;
+    const src = files[i++];
+    const img = new Image();
+    img.onload = function ()
+    {
+      el.style.backgroundImage =
+        'linear-gradient(90deg, rgba(8,9,12,.84) 0%, rgba(8,9,12,.35) 48%, rgba(8,9,12,.10) 100%), url("' + src + '")';
+      el.style.backgroundSize = "cover";
+      el.style.backgroundPosition = "center";
+    };
+    img.onerror = next;
+    img.src = src;
+  }
+  next();
 }
 function startFeat()
 {
@@ -344,7 +371,7 @@ function Render()
 {
   saverOn = false;
   clearInterval(featTimer);
-  screen.className = "theme-" + getTheme() + " wall-" + (getWall() === "custom" ? "none" : "none");
+  screen.className = "theme-" + getTheme() + " wall-none";
   applyWall();
   screen.innerHTML = `
     <aside class="sidebar">
@@ -502,7 +529,7 @@ function DrawPage()
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 3.7</div>
+        <div class="row static">Version 3.8</div>
       </div>
       ${custom.length ? `
         <div class="section-title">Custom apps</div>
