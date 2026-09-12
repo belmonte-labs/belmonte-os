@@ -4,6 +4,7 @@ const APP_KEY = "belmonte_custom_apps";
 const START_KEY = "belmonte_start";
 const TZ_KEY = "belmonte_tz";
 const SCREEN_KEY = "belmonte_saver";
+const THEME_KEY = "belmonte_theme";
 
 const SAVER_OPTS = [
   { id: "off", label: "Off",         ms: 0 },
@@ -13,6 +14,13 @@ const SAVER_OPTS = [
   { id: "120", label: "2 minutes",   ms: 120000 },
   { id: "300", label: "5 minutes",   ms: 300000 },
   { id: "600", label: "10 minutes",  ms: 600000 }
+];
+
+const THEMES = [
+  { id: "midnight", label: "Midnight" },
+  { id: "graphite", label: "Graphite" },
+  { id: "warm",     label: "Warm" },
+  { id: "oled",     label: "OLED" }
 ];
 
 const ZONES = [
@@ -85,6 +93,17 @@ function getStart()
 function setStart(id)
 {
   localStorage.setItem(START_KEY, id);
+  page = "set";
+  Render();
+}
+function getTheme()
+{
+  const id = localStorage.getItem(THEME_KEY) || "midnight";
+  return THEMES.some(item => item.id === id) ? id : "midnight";
+}
+function setTheme(id)
+{
+  localStorage.setItem(THEME_KEY, id);
   page = "set";
   Render();
 }
@@ -273,6 +292,7 @@ function Render()
 {
   saverOn = false;
   clearInterval(featTimer);
+  screen.className = "theme-" + getTheme();
   screen.innerHTML = `
     <aside class="sidebar">
       <div class="brand">Belmonte <b>TV</b></div>
@@ -406,6 +426,10 @@ function DrawPage()
         <div class="row" onclick="setStart('live')">Live TV${start === "live" ? "  ·  selected" : ""}</div>
         <div class="row" onclick="setStart('apps')">Apps${start === "apps" ? "  ·  selected" : ""}</div>
       </div>
+      <div class="section-title">Theme</div>
+      <div class="settings-list">
+        ${THEMES.map(item => `<div class="row" onclick="setTheme('${item.id}')">${item.label}${getTheme() === item.id ? "  ·  selected" : ""}</div>`).join("")}
+      </div>
       <div class="section-title">Location</div>
       <div class="settings-list">
         <div class="row" onclick="choosingTz=true; Render()">${tzLabel()}</div>
@@ -420,7 +444,7 @@ function DrawPage()
         <div class="row" onclick="location.reload()">Reload interface</div>
         <div class="row" onclick="clearFavs()">Clear favorites</div>
         <div class="row" onclick="OpenURL('https://github.com/belmonte-labs/belmonte-os')">Open GitHub</div>
-        <div class="row static">Version 3.3</div>
+        <div class="row static">Version 3.4</div>
       </div>
       ${custom.length ? `
         <div class="section-title">Custom apps</div>
