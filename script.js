@@ -73,6 +73,34 @@ const FEATURED = [
   { name: "Tubi",     tag: "Movies",  url: "https://tubitv.com",        banner: "tubi" },
   { name: "Music",    tag: "Audio",   url: "https://music.youtube.com", banner: "music" }
 ];
+function queryVal(name)
+{
+  const s = location.search || "";
+  const m = s.match(new RegExp("[?&]" + name + "=([^&]*)"));
+  return m ? decodeURIComponent(m[1].replace(/\+/g, " ")) : "";
+}
+
+function applyQueryDefaults()
+{
+  const tz = queryVal("tz");
+  const theme = queryVal("theme");
+  const saver = queryVal("saver");
+  const start = queryVal("start");
+  const wall = queryVal("wall");
+  const file = queryVal("file");
+  if (tz) localStorage.setItem(TZ_KEY, tz);
+  if (theme) localStorage.setItem(THEME_KEY, theme);
+  if (saver) localStorage.setItem(SCREEN_KEY, saver);
+  if (start) localStorage.setItem(START_KEY, start);
+  if (wall === "none") localStorage.setItem(WALL_KEY, "none");
+  if (file)
+  {
+    localStorage.setItem(WALL_KEY, "custom");
+    localStorage.setItem(WALL_FILE_KEY, file.indexOf("/") === -1 ? "wallpapers/" + file : file);
+  }
+}
+
+applyQueryDefaults();
 
 let page = getStart();
 let picking = false;
